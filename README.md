@@ -49,7 +49,7 @@ CivicPulse AI integrates structured city metrics with unstructured public report
 
 5. Presentation Layer
 
-- Natural language answer
+- AI answer
 
 - Evidence citation
 
