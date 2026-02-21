@@ -53,10 +53,6 @@ CivicPulse AI integrates structured city metrics with unstructured public report
 
 - Evidence citation
 
-Pipeline:
-
-Raw Data → ETL → Snowflake (Canonical Schema) + Policy PDFs → Embedding → Vector DB → Hybrid Retrieval Layer → LLM Synthesis Layer → Natural Language Answer with Evidence
-
 ## Technology Use
 
 We selected Snowflake as our structured data warehouse because:
