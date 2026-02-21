@@ -22,6 +22,38 @@ CivicPulse AI integrates structured city metrics with unstructured public report
 
 ## Architecture Overview
 
+1. Data Ingestion Layer
+
+Crime raw data → ETL → Canonical Schema
+
+Policy PDFs → Chunking → Embedding
+
+2. Storage Layer
+
+Structured tables (crime, housing, transport)
+
+Vectorized policy documents
+
+3. Retrieval Layer
+
+SQL-based analytics
+
+Vector similarity search
+
+Hybrid ranking
+
+4. LLM Synthesis Layer
+
+Cortex COMPLETE
+
+Context-aware reasoning
+
+5. Presentation Layer
+
+Natural language answer
+
+Evidence citation
+
 Pipeline:
 
 Raw Data → ETL → Snowflake (Canonical Schema) + Policy PDFs → Embedding → Vector DB → Hybrid Retrieval Layer → LLM Synthesis Layer → Natural Language Answer with Evidence
