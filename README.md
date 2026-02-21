@@ -33,7 +33,7 @@ CivicPulse AI integrates structured city metrics with unstructured public report
 
 - Structured tables (crime, housing, transport)
 
-- Vectorized policy documents
+- Policy documents
 
 3. Retrieval Layer
 
