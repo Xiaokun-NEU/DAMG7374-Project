@@ -26,7 +26,6 @@ FILE_FORMAT = (
     FIELD_OPTIONALLY_ENCLOSED_BY = '"'
 );
 
--- 生成 embedding
 UPDATE POLICY_DOCUMENTS
 SET EMBEDDING = SNOWFLAKE.CORTEX.EMBED_TEXT_768(
     'snowflake-arctic-embed-m',

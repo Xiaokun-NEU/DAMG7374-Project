@@ -1,50 +1,71 @@
 
+-- =====================================================
+-- UNIFIED RAG SYSTEM: Policy + Crime Data
+-- =====================================================
 WITH params AS (
-    SELECT 'How is Boston addressing violent crime in recent years?' AS QUESTION
+    -- SELECT 'What are the crime trends and policy responses in Boston?' AS QUESTION
+    SELECT 'Which district has the most violent crime?' AS QUESTION
+    -- SELECT 'How is Boston addressing gun violence?' AS QUESTION
 ),
 
--- 2️⃣ 生成查询 embedding
 query_embedding AS (
     SELECT 
         QUESTION,
-        SNOWFLAKE.CORTEX.EMBED_TEXT_768(
-            'snowflake-arctic-embed-m',
-            QUESTION
-        ) AS Q_VEC
+        SNOWFLAKE.CORTEX.EMBED_TEXT_768('snowflake-arctic-embed-m', QUESTION) AS Q_VEC
     FROM params
 ),
 
--- 3️⃣ 向量检索 Top 5 最相关段落
-top_chunks AS (
+policy_results AS (
     SELECT
-        p.POLICY_ID,
-        p.SOURCE_FILE,
-        p.PAGE_NUMBER,
-        p.CHUNK_TEXT,
+        'POLICY' AS SOURCE_TYPE,
+        p.POLICY_ID AS DOC_ID,
+        p.SOURCE_FILE AS SOURCE_NAME,
+        p.CHUNK_TEXT AS CONTENT,
         VECTOR_COSINE_SIMILARITY(p.EMBEDDING, q.Q_VEC) AS SCORE,
         q.QUESTION
-    FROM POLICY_DOCUMENTS p,
-         query_embedding q
-    ORDER BY SCORE DESC
-    LIMIT 5
+    FROM DAMG7374_CRIME_DATE.PUBLIC.POLICY_DOCUMENTS p, query_embedding q
 ),
 
--- 4️⃣ 合并文本上下文
-combined_text AS (
+crime_results AS (
+    SELECT
+        'CRIME_DATA' AS SOURCE_TYPE,
+        c.SUMMARY_ID AS DOC_ID,
+        c.SUMMARY_TYPE || ': ' || c.DIMENSION_VALUE AS SOURCE_NAME,
+        c.SUMMARY_TEXT AS CONTENT,
+        VECTOR_COSINE_SIMILARITY(c.EMBEDDING, q.Q_VEC) AS SCORE,
+        q.QUESTION
+    FROM DAMG7374_CRIME_DATE.PUBLIC.CRIME_SUMMARIES c, query_embedding q
+),
+
+unified_results AS (
+    SELECT * FROM policy_results
+    UNION ALL
+    SELECT * FROM crime_results
+),
+
+top_chunks AS (
+    SELECT *
+    FROM unified_results
+    ORDER BY SCORE DESC
+    LIMIT 8
+),
+
+combined_context AS (
     SELECT 
-        LISTAGG(CHUNK_TEXT, ' ') AS FULL_CONTEXT,
+        LISTAGG('[' || SOURCE_TYPE || ' - ' || SOURCE_NAME || ']: ' || CONTENT, '\n\n') AS FULL_CONTEXT,
         MAX(QUESTION) AS QUESTION
     FROM top_chunks
 )
 
--- 5️⃣ 用 AI 生成最终回答
 SELECT SNOWFLAKE.CORTEX.COMPLETE(
     'snowflake-arctic',
-    'Based on the following official Boston policy documents, answer clearly and professionally.
+    'You are an expert assistant on Boston crime data and city policies. 
+Answer the question using BOTH crime statistics AND policy documents when relevant.
+Be specific with numbers and cite sources.
 
-    Question: ' || QUESTION || '
+Question: ' || QUESTION || '
 
-    Context:
-    ' || FULL_CONTEXT
+Context (from crime data and policy documents):
+' || FULL_CONTEXT
 ) AS AI_RESPONSE
-FROM combined_text;
+FROM combined_context;
