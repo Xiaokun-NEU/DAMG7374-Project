@@ -4,7 +4,7 @@
 -- =====================================================
 WITH params AS (
     -- SELECT 'What are the crime trends and policy responses in Boston?' AS QUESTION
-    SELECT 'Which district has the most violent crime?' AS QUESTION
+    SELECT 'Which 2 districts have the most violent crime?' AS QUESTION
     -- SELECT 'How is Boston addressing gun violence?' AS QUESTION
 ),
 
